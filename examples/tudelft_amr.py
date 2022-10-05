@@ -5,15 +5,13 @@ from easy_inference.utils.filters import filter_iou3d
 
 import onnxruntime as ort
 import numpy as np
-import pyrealsense2 as rs
 import cv2
-import time 
 
 SHOW = True
 ROS = True
 
 if ROS:
-    from ros_connector import RosConnector
+    from easy_inference.utils.ros_connector import RosConnector
     ros_connector = RosConnector()
 
 # ort.set_default_logger_severity(0)
