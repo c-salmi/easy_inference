@@ -1,7 +1,5 @@
-import pyrealsense2 as rs
 import numpy as np
 import time
-import logger
 from typing import Generator
 from abc import ABC, abstractmethod
 

@@ -26,8 +26,6 @@ class RosConnector():
         # publisher = rospy.Publisher('/detections3D', BoundingBox3DArray, queue_size=1) 
         self._publisherBoxes3d = rospy.Publisher('detections3D', jsk_msgs.BoundingBoxArray, queue_size=1) 
 
-        if self._transform_before_pub = Treu
-
     def _to_bb_msg(self, box: BoundingBox3d):
         msg = jsk_msgs.BoundingBox()
         msg.pose.position = Point(x=box.x, y=box.y, z=box.z)
