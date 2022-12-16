@@ -8,7 +8,7 @@ with open(os.path.join(directory, 'README.md'), encoding='utf-8') as f:
   long_description = f.read()
 
 setup(name='easy_inference',
-      version='0.0.3',
+      version='0.0.4',
       description='Got a working detection model file? Want to quickly setup inference pipelines? You are in the right place!',
       author='Chadi Salmi',
       license='MIT',

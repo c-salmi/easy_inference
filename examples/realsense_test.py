@@ -9,7 +9,7 @@ import pyrealsense2 as rs
 import cv2
 
 SHOW = True
-ROS = True
+ROS = False
 
 if ROS:
     from easy_inference.utils.ros_connector import RosConnector
