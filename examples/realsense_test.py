@@ -1,6 +1,6 @@
 from easy_inference.providers.realsense import Realsense
 from easy_inference.providers.utils import combine
-from easy_inference.utils.boundingbox import BoundingBox
+from easy_inference.utils.boundingbox import BoundingBox, drawBoxes
 from easy_inference.utils.filters import filter_iou3d
 
 import onnxruntime as ort
@@ -16,7 +16,7 @@ if ROS:
     ros_connector = RosConnector()
 
 # ort.set_default_logger_severity(0)
-ort_sess = ort.InferenceSession('yolov7.onnx', providers=['CUDAExecutionProvider'])
+ort_sess = ort.InferenceSession('yolov7-tiny.onnx', providers=['CUDAExecutionProvider'])
 
 extra = Realsense(width=640, height=480, depth=True, device='043422250695')
 providers = [extra]
@@ -49,10 +49,10 @@ for frames in combine(*providers):
         ros_connector.publishBoundingBoxes3d(boxes3d)
     #
     if SHOW:
-        for box2d in boxes2d:
-            cv2.rectangle(rgb_frames[box2d.batch_id], (box2d.x0, box2d.y0), (box2d.x1, box2d.y1), (0,255,0),2)
+        f = rgb_frames[0]
+        drawBoxes(frame=f, boxes=boxes2d)
 
-        cv2.imshow('frame', rgb_frames[box2d.batch_id])
+        cv2.imshow('frame', f)
         if cv2.waitKey(1) == 27:
             break
 

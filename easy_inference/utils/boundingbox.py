@@ -1,6 +1,8 @@
 import numpy as np
 import pyrealsense2 as rs
 import math
+import cv2
+from typing import List
 
 # [x, y, z, w, h, l, theta, class_id, conf]
 class BoundingBox3d():
@@ -94,3 +96,13 @@ class BoundingBox():
 
     def __str__(self):
         return f'BoundingBox(x0={self.x0}, y0={self.y0}, x1={self.x1}, y1={self.y1}, class_id={self.class_id}, confidence={self.confidence:.2f}, batch_id={self.batch_id}, frame_id={self.frame_id})'
+
+
+def drawBoxes(frame, boxes=List[BoundingBox]):
+    if len(frame.shape) == 2:
+        color = 255
+    else:
+        color = (0,255,0)
+
+    for box2d in boxes:
+        cv2.rectangle(frame, (box2d.x0, box2d.y0), (box2d.x1, box2d.y1), color,2)
