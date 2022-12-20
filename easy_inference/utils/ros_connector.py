@@ -3,6 +3,7 @@ from easy_inference.utils.skeleton import Skeleton3d
 import jsk_recognition_msgs.msg as jsk_msgs
 import visualization_msgs.msg as visualization_msgs
 from geometry_msgs.msg import Point, Vector3, PoseStamped
+from sensor_msgs.msg import PointCloud2, PointField
 import numpy as np
 from std_msgs.msg import Header
 import rospy
@@ -30,6 +31,7 @@ class RosConnector():
         self._tf_listener = tf.TransformListener()
         self._publisherBoxes3d = rospy.Publisher('detections3D', jsk_msgs.BoundingBoxArray, queue_size=1) 
         self._publisherSkeleton3d = rospy.Publisher('skeleton3D', visualization_msgs.MarkerArray, queue_size=1) 
+        self._publisherPointcloud = rospy.Publisher("pointcloud", PointCloud2, queue_size=10)
 
         self._fixed_frame = fixed_frame
 
@@ -117,4 +119,26 @@ class RosConnector():
                 skeleton_msg.markers.append(m)
 
         self._publisherSkeleton3d.publish(skeleton_msg)
+
+    def publishPointcloud(self, points):
+        # Create a PointCloud2 message
+        msg = PointCloud2()
+
+        # Fill in the fields of the message
+        msg.header.stamp = rospy.Time.now()
+        msg.header.frame_id = f'camera1_color_optical_frame'
+        msg.height = 1
+        msg.width = len(points)
+        msg.fields = [
+            PointField('x', 0, PointField.FLOAT32, 1),
+            PointField('y', 4, PointField.FLOAT32, 1),
+            PointField('z', 8, PointField.FLOAT32, 1),
+        ]
+        msg.is_bigendian = False
+        msg.point_step = 12
+        msg.row_step = msg.point_step * msg.width
+        msg.is_dense = False
+        msg.data = points.tostring()
+
+        self._publisherPointcloud.publish(msg)
 

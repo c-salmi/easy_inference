@@ -22,8 +22,8 @@ extra = Realsense(width=640, height=480, depth=True, device='043422250695')
 providers = [extra]
 
 for frames in combine(*providers):
-    rgb_frames = np.stack([f[1] for f in frames])
-    depth_frames = np.stack([f[0] for f in frames])
+    rgb_frames = np.stack([f[0] for f in frames])
+    depth_frames = np.stack([f[1] for f in frames])
 
     input = rgb_frames.transpose((0, 3, 1, 2))
     input = np.ascontiguousarray(input)

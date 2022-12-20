@@ -3,7 +3,7 @@ import pyrealsense2 as rs
 import numpy as np
 
 class Realsense(FrameProvider):
-    def __init__(self, width=1280, height=720, depth=False, device=None) -> None:
+    def __init__(self, width=1280, height=720, depth=False, pointcloud=False, device=None) -> None:
         super().__init__()
         self._pipe = rs.pipeline()
         config = rs.config()
@@ -20,11 +20,29 @@ class Realsense(FrameProvider):
         depth_sensor = self._profile.get_device().first_depth_sensor()
         self._depth_scale = depth_sensor.get_depth_scale()
 
+        self._pointcloud = pointcloud
+        if pointcloud:
+            self._pc = rs.pointcloud()
+
     def __next__(self):
         self.log_fps()
         frames = self._pipe.wait_for_frames()
 
-        if self._depth:
-            aligned_frames = self._align.process(frames)
-            return (np.asanyarray(aligned_frames[0].get_data()), np.asanyarray(aligned_frames[1].get_data()))
-        return np.asanyarray(frames[0].get_data())
+        if self._pointcloud and not self._depth:
+            raise Exception("It is not possible to enable pointcloud, without depth")
+
+        if not self._depth and not self.pointcloud:
+            return np.asanyarray(frames.get_color_frame().get_data())
+
+        aligned_frames = self._align.process(frames)
+        color_frame = aligned_frames.get_color_frame()
+        depth_frame = aligned_frames.get_depth_frame()
+
+        if not self._pointcloud:
+            return (np.asanyarray(color_frame.get_data()), np.asanyarray(depth_frame.get_data()))
+        else:
+            points = self._pc.calculate(depth_frame)
+            v = points.get_vertices()
+            verts = np.asanyarray(v).view(np.float32).reshape(-1, 3)  # xyz
+            return (np.asanyarray(color_frame.get_data()), np.asanyarray(depth_frame.get_data()), verts)
+

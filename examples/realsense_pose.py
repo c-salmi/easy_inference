@@ -22,12 +22,13 @@ if ROS:
 ort_sess = ort.InferenceSession('yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
 
 width, height = 640, 480
-extra = Realsense(width=width, height=height, depth=True, device='043422250695')
+extra = Realsense(width=width, height=height, depth=True, pointcloud=True, device='043422250695')
 providers = [extra]
 
 for frames in combine(*providers):
-    rgb_frames = np.stack([f[1] for f in frames]).transpose((0, 3, 1, 2))
-    depth_frames = np.stack([f[0] for f in frames])
+    rgb_frames = np.stack([f[0] for f in frames]).transpose((0, 3, 1, 2))
+    depth_frames = np.stack([f[1] for f in frames])
+    pcl = frames[0][2]
 
     if rgb_frames.shape != (len(providers), 3, 512, 640):
         row_pad, col_pad = ([512, 640] - np.array(rgb_frames.shape)[-2:])//2
@@ -65,6 +66,7 @@ for frames in combine(*providers):
 
     if ROS and len(persons3d)>0: 
         ros_connector.publishPersons3d(persons3d)
+        ros_connector.publishPointcloud(pcl)
     #
     if SHOW:
         f_rgb = np.ascontiguousarray(rgb_frames[0].transpose(1,2,0).astype(np.uint8))
