@@ -120,13 +120,13 @@ class RosConnector():
 
         self._publisherSkeleton3d.publish(skeleton_msg)
 
-    def publishPointcloud(self, points):
+    def publishPointcloud(self, points, batch_id=0):
         # Create a PointCloud2 message
         msg = PointCloud2()
 
         # Fill in the fields of the message
         msg.header.stamp = rospy.Time.now()
-        msg.header.frame_id = f'camera1_color_optical_frame'
+        msg.header.frame_id = f'camera{batch_id+1}_color_optical_frame'
         msg.height = 1
         msg.width = len(points)
         msg.fields = [

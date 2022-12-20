@@ -28,7 +28,7 @@ providers = [extra]
 for frames in combine(*providers):
     rgb_frames = np.stack([f[0] for f in frames]).transpose((0, 3, 1, 2))
     depth_frames = np.stack([f[1] for f in frames])
-    pcl = frames[0][2]
+    pointclouds = np.stack([f[2] for f in frames])
 
     network_input_dim = [512, 640]
     rgb_frames = pad_frames(rgb_frames, width=network_input_dim[0], height=network_input_dim[1])
@@ -54,8 +54,9 @@ for frames in combine(*providers):
 
     if ROS and len(persons3d)>0: 
         ros_connector.publishPersons3d(persons3d)
-        ros_connector.publishPointcloud(pcl)
-    #
+        batch_id = 0
+        ros_connector.publishPointcloud(pointclouds[batch_id], batch_id)
+    
     if SHOW:
         f_rgb = np.ascontiguousarray(rgb_frames[0].transpose(1,2,0).astype(np.uint8))
         f_depth = depth_frames[0] * (255/np.amax(depth_frames[0]))
