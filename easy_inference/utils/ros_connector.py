@@ -71,13 +71,13 @@ class RosConnector():
         # new_pose = tf_listener.transformPose('lidar', PoseStamped(header=Header(frame_id=f'camera{int(pred[0])+1}_link'), pose=box3d.pose))
         # box3d.pose = new_pose.pose
 
-    def publishPersons3d(self, persons: List[Skeleton3d]):
+    def publishPersons3d(self, persons: List[Skeleton3d], conf_threshold=0.5):
         self.publishBoundingBoxes3d(persons)
 
         skeleton_msg = visualization_msgs.MarkerArray()
         for p_id, person in enumerate(persons):
             for x, y, z, conf, kpt_id in person.keypoints:
-                if conf < 0.5: continue
+                if conf < conf_threshold: continue
 
                 m = visualization_msgs.Marker()
                 m.id = kpt_id + ((p_id+1)*26)
@@ -100,7 +100,7 @@ class RosConnector():
                 kpt1 = person.keypoints[sk[1]-1]
                 
                 # check confidences
-                if kpt0[3]<0.5 or kpt1[3]<0.5: 
+                if kpt0[3]<conf_threshold or kpt1[3]<conf_threshold: 
                     continue
 
                 m = visualization_msgs.Marker()

@@ -3,6 +3,7 @@ from easy_inference.providers.utils import combine
 from easy_inference.utils.boundingbox import BoundingBox, drawBoxes
 from easy_inference.utils.skeleton import Skeleton, drawSkeletons
 from easy_inference.utils.filters import filter_iou3d
+from easy_inference.utils.pad_frames import pad_frames
 
 import os
 import onnxruntime as ort
@@ -18,7 +19,6 @@ if ROS:
     ros_connector = RosConnector()
 
 # ort.set_default_logger_severity(0)
-# ort_sess = ort.InferenceSession('yolov7-tiny.onnx', providers=['CUDAExecutionProvider'])
 ort_sess = ort.InferenceSession('yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
 
 width, height = 640, 480
@@ -30,21 +30,9 @@ for frames in combine(*providers):
     depth_frames = np.stack([f[1] for f in frames])
     pcl = frames[0][2]
 
-    if rgb_frames.shape != (len(providers), 3, 512, 640):
-        row_pad, col_pad = ([512, 640] - np.array(rgb_frames.shape)[-2:])//2
-        assert row_pad >= 0 and col_pad >= 0
-        rgb_frames = np.pad(rgb_frames, (
-            (0, 0),
-            (0, 0),
-            (row_pad, row_pad),
-            (col_pad, col_pad) 
-        ))
-
-        depth_frames = np.pad(depth_frames, (
-            (0, 0),
-            (row_pad, row_pad),
-            (col_pad, col_pad) 
-        ))
+    network_input_dim = [512, 640]
+    rgb_frames = pad_frames(rgb_frames, width=network_input_dim[0], height=network_input_dim[1])
+    depth_frames = pad_frames(depth_frames, width=network_input_dim[0], height=network_input_dim[1])
 
     input = np.ascontiguousarray(rgb_frames)
     input = input.astype(np.float32)
