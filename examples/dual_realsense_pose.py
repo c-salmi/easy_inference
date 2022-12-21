@@ -34,7 +34,7 @@ for frames in combine(*providers):
     depth_frames = np.stack([f[1] for f in frames])
     pointclouds = np.stack([f[2] for f in frames])
 
-    network_input_dim = [512, 640]
+    network_input_dim = [640, 512]
     rgb_frames = pad_frames(rgb_frames, width=network_input_dim[0], height=network_input_dim[1])
     depth_frames = pad_frames(depth_frames, width=network_input_dim[0], height=network_input_dim[1])
 
@@ -43,14 +43,11 @@ for frames in combine(*providers):
     input /= 255
 
     all_outputs = ort_sess.run(None, {'images': input})
-    print(len(all_outputs[1]))
 
     # convert to Skeleton for convenience
     persons = []
     for batch_id, outputs in enumerate(all_outputs):
         persons += [Skeleton(*output[0:4], class_id=output[5], confidence=output[4], kpts=output[6:], batch_id=batch_id) for output in outputs]
-
-    print([p.batch_id for p in persons])
 
     # filter classes
     persons = [person for person in persons if person.class_id == 0]

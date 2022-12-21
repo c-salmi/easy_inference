@@ -24,6 +24,8 @@ class Realsense(FrameProvider):
         if pointcloud:
             self._pc = rs.pointcloud()
 
+    def __iter__(self): return self
+
     def __next__(self):
         self.log_fps()
         frames = self._pipe.wait_for_frames()
