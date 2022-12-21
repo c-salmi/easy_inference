@@ -14,16 +14,20 @@ import cv2
 ROS = os.getenv("ROS", 0)
 SHOW = os.getenv("SHOW", 0)
 
-if ROS:
-    from easy_inference.utils.ros_connector import RosConnector
-    ros_connector = RosConnector()
-
 # ort.set_default_logger_severity(0)
-ort_sess = ort.InferenceSession('yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
+# ort_sess = ort.InferenceSession('yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
+ort_sess = ort.InferenceSession('/home/albert/Downloads/yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
 
 width, height = 640, 480
-extra = Realsense(width=width, height=height, depth=True, pointcloud=True, device='043422250695')
-providers = [extra]
+# extra = Realsense(width=width, height=height, depth=True, pointcloud=True, device='043422250695')
+cam5 = Realsense(width=width, height=height, depth=True, pointcloud=True, device='215122255929')
+cam1 = Realsense(width=width, height=height, depth=True, pointcloud=True, device='215122255869')
+providers = [cam5, cam1]
+
+if ROS:
+    from easy_inference.utils.ros_connector import RosConnector
+    ros_connector = RosConnector(num_cameras=len(providers), fixed_frame='base_link')
+
 
 for frames in combine(*providers):
     rgb_frames = np.stack([f[0] for f in frames]).transpose((0, 3, 1, 2))
@@ -38,11 +42,15 @@ for frames in combine(*providers):
     input = input.astype(np.float32)
     input /= 255
 
-    # output: [batch_id, x0, y0, x1, y1, class_id, conf]
-    outputs = ort_sess.run(None, {'images': input})[0]
+    all_outputs = ort_sess.run(None, {'images': input})
+    print(len(all_outputs[1]))
 
     # convert to Skeleton for convenience
-    persons = [Skeleton(*output[0:4], class_id=output[5], confidence=output[4], kpts=output[6:], batch_id=0) for output in outputs]
+    persons = []
+    for batch_id, outputs in enumerate(all_outputs):
+        persons += [Skeleton(*output[0:4], class_id=output[5], confidence=output[4], kpts=output[6:], batch_id=batch_id) for output in outputs]
+
+    print([p.batch_id for p in persons])
 
     # filter classes
     persons = [person for person in persons if person.class_id == 0]
@@ -54,18 +62,19 @@ for frames in combine(*providers):
 
     if ROS and len(persons3d)>0: 
         ros_connector.publishPersons3d(persons3d)
-        batch_id = 0
-        ros_connector.publishPointcloud(pointclouds[batch_id], batch_id)
+        ros_connector.publishPointclouds(pointclouds)
     
     if SHOW:
-        f_rgb = np.ascontiguousarray(rgb_frames[0].transpose(1,2,0).astype(np.uint8))
-        f_depth = depth_frames[0] * (255/np.amax(depth_frames[0]))
+        batch_id = 1
+        persons_to_draw = [p for p in persons if p.batch_id == batch_id]
+        f_rgb = np.ascontiguousarray(rgb_frames[batch_id].transpose(1,2,0).astype(np.uint8))
+        f_depth = depth_frames[batch_id] * (255/np.amax(depth_frames[batch_id]))
 
-        drawBoxes(f_rgb, persons)
-        drawBoxes(f_depth, persons)
+        drawBoxes(f_rgb, persons_to_draw)
+        drawBoxes(f_depth, persons_to_draw)
 
-        drawSkeletons(f_rgb, persons)
-        drawSkeletons(f_depth, persons)
+        drawSkeletons(f_rgb, persons_to_draw)
+        drawSkeletons(f_depth, persons_to_draw)
 
         cv2.imshow('depth_frame', f_depth)
         cv2.imshow('rgb_frame', f_rgb)
