@@ -7,9 +7,10 @@ import onnxruntime as ort
 import numpy as np
 import pyrealsense2 as rs
 import cv2
+import os
 
-SHOW = True
-ROS = False
+ROS = os.getenv("ROS", 0)
+SHOW = os.getenv("SHOW", 0)
 
 if ROS:
     from easy_inference.utils.ros_connector import RosConnector

@@ -15,12 +15,10 @@ ROS = os.getenv("ROS", 0)
 SHOW = os.getenv("SHOW", 0)
 
 # ort.set_default_logger_severity(0)
-# ort_sess = ort.InferenceSession('yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
 ort_sess = ort.InferenceSession('yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
 
 width, height = 640, 480
 cam1 = Realsense(width=width, height=height, depth=True, pointcloud=True, device='215122255869')
-providers = [cam1]
 
 if ROS:
     from easy_inference.utils.ros_connector import RosConnector

@@ -1,4 +1,4 @@
-from provider_base import FrameProvider
+from easy_inference.providers.provider_base import FrameProvider
 import cv2
 
 class Webcam(FrameProvider):
@@ -9,5 +9,6 @@ class Webcam(FrameProvider):
     def __iter__(self): return self
 
     def __next__(self):
+        self.log_fps()
         _, frame = self._video_capture.read()
         return frame
