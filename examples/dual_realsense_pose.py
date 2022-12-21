@@ -15,8 +15,7 @@ ROS = os.getenv("ROS", 0)
 SHOW = os.getenv("SHOW", 0)
 
 # ort.set_default_logger_severity(0)
-# ort_sess = ort.InferenceSession('yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
-ort_sess = ort.InferenceSession('/home/albert/Downloads/yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
+ort_sess = ort.InferenceSession('yolov7-w6-pose.onnx', providers=['CUDAExecutionProvider'])
 
 width, height = 640, 480
 # extra = Realsense(width=width, height=height, depth=True, pointcloud=True, device='043422250695')
