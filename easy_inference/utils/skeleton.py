@@ -54,6 +54,7 @@ class Skeleton(BoundingBox):
 
         kpts = []
         depth_estimation_margin = 2
+        depth_kpts = []
         for kpt_id, kpt in enumerate(self.keypoints):
             patch = depth_frame[
                 kpt[1]-depth_estimation_margin: kpt[1]+depth_estimation_margin,
@@ -68,8 +69,16 @@ class Skeleton(BoundingBox):
             else:
                 xyz = rs.rs2_deproject_pixel_to_point(intrinsics, kpt[:2], depth_kpt)
                 conf = kpt[2]
+                depth_kpts.append(depth_kpt)
 
             kpts.append((*xyz, conf, kpt_id))
+
+        pose_refined_depth = np.median(depth_kpts)
+
+        x, y, z = rs.rs2_deproject_pixel_to_point(intrinsics, self.center, pose_refined_depth)
+        box3d.x = x
+        box3d.y = y
+        box3d.z = z
 
         box3d.__class__ = Skeleton3d
         box3d.kpts = kpts

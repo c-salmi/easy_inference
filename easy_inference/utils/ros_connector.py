@@ -117,7 +117,7 @@ class RosConnector():
                 m.pose.position = Point(x=x, y=y, z=z)
                 m.scale = Point(x=0.05, y=0.05, z=0.05)
                 m.pose.orientation.w = 1
-                m.lifetime = rospy.Duration(1/10)
+                m.lifetime = rospy.Duration(1/3)
                 r, g, b = Skeleton3d.KPT_COLOR[kpt_id]
                 m.color.r = r
                 m.color.g = g
@@ -140,7 +140,7 @@ class RosConnector():
                 m.action = visualization_msgs.Marker.ADD
                 m.points = [Point(*kpt0[:3]), Point(*kpt1[:3])]
                 m.scale = Point(x=0.02, y=0.0, z=0.0)
-                m.lifetime = rospy.Duration(1/10)
+                m.lifetime = rospy.Duration(1/3)
                 r, g, b = Skeleton3d.LIMB_COLOR[sk_id]
                 m.color.r = r
                 m.color.g = g
