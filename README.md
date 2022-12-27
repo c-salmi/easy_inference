@@ -1,5 +1,7 @@
 # Easy Inference
 
+![Formatter](https://github.com/c-salmi/easy_inference/actions/workflows/black.yaml/badge.svg)
+
 Welcome to the easy inference repository! The main goal of this repository is to provide a clean, simple and short way of setting up inference pipelines for 2D (and 3D) visual detection.
 The interfaces to camera drivers are abstracted away as python `generators`. A simple inference pipeline for a webcam based inference pipeline looks as follows:
 
