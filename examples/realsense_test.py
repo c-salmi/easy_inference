@@ -14,12 +14,13 @@ SHOW = os.getenv("SHOW", 0)
 
 if ROS:
     from easy_inference.utils.ros_connector import RosConnector
+
     ros_connector = RosConnector()
 
 # ort.set_default_logger_severity(0)
-ort_sess = ort.InferenceSession('yolov7-tiny.onnx', providers=['CUDAExecutionProvider'])
+ort_sess = ort.InferenceSession("yolov7-tiny.onnx", providers=["CUDAExecutionProvider"])
 
-extra = Realsense(width=640, height=480, depth=True, device='043422250695')
+extra = Realsense(width=640, height=480, depth=True, device="043422250695")
 providers = [extra]
 
 for frames in combine(*providers):
@@ -32,7 +33,7 @@ for frames in combine(*providers):
     input /= 255
 
     # output: [batch_id, x0, y0, x1, y1, class_id, conf]
-    outputs = ort_sess.run(None, {'images': input})[0]
+    outputs = ort_sess.run(None, {"images": input})[0]
 
     # convert to BoundingBox for convenience
     boxes2d = [BoundingBox(*output[1:], batch_id=output[0]) for output in outputs]
@@ -41,21 +42,23 @@ for frames in combine(*providers):
     boxes2d = [box2d for box2d in boxes2d if box2d.class_id == 0]
 
     # project to BoundingBox3d
-    boxes3d = [box2d.to3d(depth_frames[box2d.batch_id], providers[box2d.batch_id]._depth_intr) for box2d in boxes2d]
+    boxes3d = [
+        box2d.to3d(depth_frames[box2d.batch_id], providers[box2d.batch_id]._depth_intr)
+        for box2d in boxes2d
+    ]
 
     # filter iou overlap
-    boxes3d = filter_iou3d(boxes3d)    
+    boxes3d = filter_iou3d(boxes3d)
 
-    if ROS: 
+    if ROS:
         ros_connector.publishBoundingBoxes3d(boxes3d)
     #
     if SHOW:
         f = rgb_frames[0]
         drawBoxes(frame=f, boxes=boxes2d)
 
-        cv2.imshow('frame', f)
+        cv2.imshow("frame", f)
         if cv2.waitKey(1) == 27:
             break
 
 cv2.destroyAllWindows()
-

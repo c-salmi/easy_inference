@@ -2,8 +2,11 @@ from easy_inference.providers.provider_base import FrameProvider
 import pyrealsense2 as rs
 import numpy as np
 
+
 class Realsense(FrameProvider):
-    def __init__(self, width=1280, height=720, depth=False, pointcloud=False, device=None) -> None:
+    def __init__(
+        self, width=1280, height=720, depth=False, pointcloud=False, device=None
+    ) -> None:
         super().__init__()
         self._pipe = rs.pipeline()
         config = rs.config()
@@ -16,7 +19,11 @@ class Realsense(FrameProvider):
             self._align = rs.align(rs.stream.color)
         self._profile = self._pipe.start(config)
 
-        self._depth_intr = self._profile.get_stream(rs.stream.depth).as_video_stream_profile().get_intrinsics()
+        self._depth_intr = (
+            self._profile.get_stream(rs.stream.depth)
+            .as_video_stream_profile()
+            .get_intrinsics()
+        )
         depth_sensor = self._profile.get_device().first_depth_sensor()
         self._depth_scale = depth_sensor.get_depth_scale()
 
@@ -24,7 +31,8 @@ class Realsense(FrameProvider):
         if pointcloud:
             self._pc = rs.pointcloud()
 
-    def __iter__(self): return self
+    def __iter__(self):
+        return self
 
     def __next__(self):
         self.log_fps()
@@ -41,10 +49,16 @@ class Realsense(FrameProvider):
         depth_frame = aligned_frames.get_depth_frame()
 
         if not self._pointcloud:
-            return (np.asanyarray(color_frame.get_data()), np.asanyarray(depth_frame.get_data()))
+            return (
+                np.asanyarray(color_frame.get_data()),
+                np.asanyarray(depth_frame.get_data()),
+            )
         else:
             points = self._pc.calculate(depth_frame)
             v = points.get_vertices()
             verts = np.asanyarray(v).view(np.float32).reshape(-1, 3)  # xyz
-            return (np.asanyarray(color_frame.get_data()), np.asanyarray(depth_frame.get_data()), verts)
-
+            return (
+                np.asanyarray(color_frame.get_data()),
+                np.asanyarray(depth_frame.get_data()),
+                verts,
+            )

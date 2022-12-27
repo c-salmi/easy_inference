@@ -12,7 +12,7 @@ ROS = os.getenv("ROS", 0)
 SHOW = os.getenv("SHOW", 0)
 
 # ort.set_default_logger_severity(0)
-ort_sess = ort.InferenceSession('yolov7-tiny.onnx', providers=['CUDAExecutionProvider'])
+ort_sess = ort.InferenceSession("yolov7-tiny.onnx", providers=["CUDAExecutionProvider"])
 
 webcam = Webcam(source=0)
 
@@ -24,7 +24,7 @@ for rgb_frame in webcam:
     input = np.expand_dims(input, 0)
 
     # output: [batch_id, x0, y0, x1, y1, class_id, conf]
-    outputs = ort_sess.run(None, {'images': input})[0]
+    outputs = ort_sess.run(None, {"images": input})[0]
 
     # convert to BoundingBox for convenience
     boxes = [BoundingBox(*output[1:]) for output in outputs]
@@ -32,9 +32,8 @@ for rgb_frame in webcam:
     if SHOW:
         drawBoxes(rgb_frame, boxes)
 
-        cv2.imshow('rgb_frame', rgb_frame)
+        cv2.imshow("rgb_frame", rgb_frame)
         if cv2.waitKey(1) == 27:
             break
 
 cv2.destroyAllWindows()
-
